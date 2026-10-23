@@ -16,6 +16,7 @@
   const lifetime = 1100;
   let lastClick = -Infinity;
   let variation = 0;
+  let pointerStart = null;
 
   const removeBloom = bloom => {
     clearTimeout(active.get(bloom));
@@ -33,11 +34,25 @@
     return node;
   };
 
-  document.addEventListener('click', event => {
+  // Capture clicks before article widgets can stop their propagation.
+  window.addEventListener('pointerdown', event => {
+    pointerStart = event.button === 0 && event.isPrimary !== false
+      ? { x: event.clientX, y: event.clientY }
+      : null;
+  }, { capture: true, passive: true });
+
+  window.addEventListener('pointercancel', () => {
+    pointerStart = null;
+  }, { capture: true, passive: true });
+
+  window.addEventListener('click', event => {
+    const dragged = pointerStart && Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) > 8;
+    pointerStart = null;
+    if (dragged) return;
     if (event.defaultPrevented || event.button !== 0 || event.detail === 0 || reducedMotion.matches) return;
-    if (!(event.target instanceof Element)) return;
-    if (event.target.closest('input, textarea, select, button, label, [contenteditable]:not([contenteditable="false"]), [role="button"], audio, video')) return;
-    if (window.getSelection()?.isCollapsed === false) return;
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    if (!target) return;
+    if (target.closest('input, textarea, select, button, label, [contenteditable]:not([contenteditable="false"]), [role="button"], audio, video')) return;
 
     const now = performance.now();
     if (now - lastClick < 100) return;
@@ -51,7 +66,7 @@
     bloom.style.top = `${event.clientY}px`;
     bloom.style.setProperty('--bloom-turn', `${(variation++ % 3 - 1) * 18}deg`);
     if (touch) bloom.classList.add('click-bloom--touch');
-    if (event.target.closest('#page-header, #footer')) bloom.classList.add('click-bloom--on-cover');
+    if (target.closest('#page-header, #footer')) bloom.classList.add('click-bloom--on-cover');
 
     bloom.append(
       element('click-bloom__halo'),
@@ -73,7 +88,7 @@
 
     layer.appendChild(bloom);
     active.set(bloom, setTimeout(() => removeBloom(bloom), lifetime));
-  }, { passive: true });
+  }, { capture: true, passive: true });
 
   document.addEventListener('pjax:send', clear);
   document.addEventListener('visibilitychange', () => {
