@@ -1,0 +1,111 @@
+/* Ice blue rings and a few snow-like glints. */
+#click-bloom-layer {
+  --bloom-blue: 82, 171, 222;
+  --bloom-lilac: 161, 147, 220;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+[data-theme="dark"] #click-bloom-layer,
+.click-bloom--on-cover {
+  --bloom-blue: 143, 215, 250;
+  --bloom-lilac: 192, 176, 246;
+}
+
+.click-bloom {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.click-bloom__halo,
+.click-bloom__ring,
+.click-bloom__spark {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.click-bloom__halo {
+  top: -34px;
+  left: -34px;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--bloom-blue), .2), rgba(var(--bloom-lilac), .08) 40%, transparent 70%);
+  animation: bloom-halo 650ms ease-out both;
+}
+
+.click-bloom__ring {
+  box-sizing: border-box;
+  top: -25px;
+  left: -25px;
+  width: 50px;
+  height: 50px;
+  border: 1px solid rgba(var(--bloom-blue), .7);
+  border-radius: 50%;
+  box-shadow: 0 0 7px rgba(var(--bloom-blue), .14), inset 0 0 5px rgba(var(--bloom-blue), .08);
+  animation: bloom-ring 760ms cubic-bezier(.16, .7, .3, 1) both;
+}
+
+.click-bloom__ring--echo {
+  border-color: rgba(var(--bloom-lilac), .4);
+  animation-name: bloom-echo;
+  animation-duration: 850ms;
+  animation-delay: 60ms;
+}
+
+.click-bloom__spark {
+  top: calc(var(--spark-size) / -2);
+  left: calc(var(--spark-size) / -2);
+  width: var(--spark-size);
+  height: var(--spark-size);
+  background: rgb(var(--bloom-blue));
+  clip-path: polygon(50% 0, 61% 37%, 100% 50%, 61% 63%, 50% 100%, 39% 63%, 0 50%, 39% 37%);
+  animation: bloom-spark 820ms cubic-bezier(.12, .65, .3, 1) var(--spark-delay) both;
+}
+
+.click-bloom__spark--dust {
+  background: rgb(var(--bloom-lilac));
+  border-radius: 50%;
+  clip-path: none;
+}
+
+.click-bloom--touch .click-bloom__ring {
+  width: 38px;
+  height: 38px;
+  top: -19px;
+  left: -19px;
+}
+
+@keyframes bloom-halo {
+  0% { opacity: 0; transform: scale(.3); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.4); }
+}
+
+@keyframes bloom-ring {
+  0% { opacity: .9; transform: scale(.15); }
+  100% { opacity: 0; transform: scale(1.65); }
+}
+
+@keyframes bloom-echo {
+  0% { opacity: .65; transform: scale(.1); }
+  100% { opacity: 0; transform: scale(1.25); }
+}
+
+@keyframes bloom-spark {
+  0% { opacity: 0; transform: translate(0, 0) scale(.2) rotate(var(--bloom-turn)); }
+  16% { opacity: .95; }
+  65% { opacity: .8; transform: translate(var(--spark-x), var(--spark-y)) scale(.85) rotate(55deg); }
+  100% { opacity: 0; transform: translate(var(--spark-x), var(--spark-y)) scale(.3) rotate(75deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #click-bloom-layer { display: none; }
+}
